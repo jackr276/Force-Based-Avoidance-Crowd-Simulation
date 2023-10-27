@@ -228,6 +228,19 @@ def getFPS():
         updateFrames = 0
     return fps_avg, fps
 
+# spatial hash
+window_height = 0.5 # y : rows
+window_width = 0.5  # x : cols
+divisions = 4
+numCells = divisions ** 2
+cell_w = window_width // divisions
+cell_h = window_height // divisions
+grid_w = divisions
+grid = {k : []  for k in range(numCells)}
+
+# hash function: use coordinated to get associated cell
+def getGridCell(x,y):
+    return (x // cell_w) + (y // cell_h) * grid_w
 
 # Main loop
 while not glfw.window_should_close(window):
