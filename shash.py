@@ -1,7 +1,7 @@
 """
 Jack Robbins and Randall Tarazona
 10/27/2023
-IT360 Homework 3 task 2
+IT360 Homework 3 task 3
 """
 
 import glfw
@@ -18,13 +18,13 @@ boundary_y = 0.5
 # max_move = 0.05
 max_move = 2
 # circle_rad = 0.05
-circle_rad = 25
+circle_rad = 15
 AgentSize = circle_rad*2
-numCircles = 30 
+numCircles = 30
 # MAX_FORCE = 0.01
 # MAX_SPEED = 0.008
-MAX_FORCE = 1
-MAX_SPEED = 0.8
+MAX_FORCE = 2
+MAX_SPEED = 1.5
 lastTime = time.time_ns()
 frames = 0
 totalTime = 0
@@ -39,7 +39,7 @@ fps_avg = 0.0
 # spatial hash
 window_height = 800 # y : rows
 window_width = 800  # x : cols
-divisions = 8 # This controls how many cells the grid will be divided into. division division
+divisions = 10 # This controls how many cells the grid will be divided into. division division
 numCells = divisions ** 2
 cell_w = window_width // divisions
 cell_h = window_height // divisions
@@ -119,72 +119,115 @@ def update_circles():
         if circle ['y'] > 799:
             circle['y'] = 1
 
-        vx = circle['v_x']
-        vy = circle['v_y']
-        zeta = 1.0023
-        f_goal_x = (circle['v_x_goal'] - vx) / zeta
-        f_goal_y = (circle['v_x_goal']- vy) / zeta
-        favoidx = 0
-        favoidy = 0
-        favoidctr = 0
-
         circle1x , circle1y = circle['x'], circle['y']
         gridCell = getGridCell(circle1x, circle1y)
 
-        # skip the cell if less than 2 agents in one cell
-        if len(sHash[gridCell]) < 2:
+        check(circle, gridCell)
+
+        #looking at all circles in lefthand cell
+        
+        adjusted_x = circle1x - cell_w
+        adjusted_y_upper = circle1y + cell_h
+        adjusted_y_lower = circle1y - cell_h
+        #we've wrapped around
+        if(adjusted_x < 1):
+            adjusted_x = window_width - 10
+        if (adjusted_x > window_width - 1):
+            adjusted_x = 10
+
+        if (adjusted_y_upper > window_height - 1):
+            adjusted_y_upper = 10
+        
+        if (adjusted_y_lower < 1):
+            adjusted_y_lower = window_height - 1
+
+        leftGridCell = getGridCell(adjusted_x, circle1y)
+        leftUpperCell = getGridCell(adjusted_x,adjusted_y_upper)
+        leftLowerCell = getGridCell(adjusted_x, adjusted_y_lower)
+
+        check(circle, leftGridCell)
+        check(circle, leftUpperCell)
+        check(circle, leftLowerCell)
+
+#FIXME
+def check(circle, gridCell):
+    # skip the cell if less than 2 agents in one cell
+    if len(sHash[gridCell]) < 2:
+        return
+
+    # looking at all circles within the same cell
+    for curr in sHash[gridCell]:
+        # don't bother checking the same circle against itself
+        if circle is curr:
             continue
-
-        # looking at all circles within the same cell
-        for curr in sHash[gridCell]:
-            # don't bother checking the same circle against itself
-            if circle is curr:
-                continue
-
-            circle1x = circle['x']
-            circle1y = circle['y']
-
-            circle2 = curr
-            circle2x = circle2['x']
-            circle2y = circle2['y']
+        updateCircleVelocity(circle, curr)
   
-            distance = distanceF(circle1x, circle1y, circle2x, circle2y)
+           
 
-            if distance > 0 and distance < AgentSize*1.25:
-                d_circle = max(distance - AgentSize, 0.001)
-                k = 0.75 * max(AgentSize*3 - d_circle, 0)
-                x_ab = (circle1x - circle2x)/distance
-                y_ab = (circle1y - circle2y)/distance
-                favoidx += k * x_ab/d_circle
-                favoidy += k * y_ab/d_circle
-                favoidctr += 1
+def updateCircleVelocity(circle, circle2):
+    circle1x = circle['x']
+    circle1y = circle['y']
+    circle2x = circle2['x']
+    circle2y = circle2['y']
 
-            if favoidctr > 0:
-                favoidx = favoidx / favoidctr
-                favoidy = favoidy / favoidctr
+    zeta = 1.0023
+    vx = circle['v_x']
+    vy = circle['v_y']
+      
 
-            force_sum_x = f_goal_x + favoidx
-            force_sum_y = f_goal_y + favoidy
-            f_avoid_mag = math.sqrt(force_sum_x*force_sum_x + force_sum_y*force_sum_y)
+    f_goal_x = (circle['v_x_goal'] - vx) / zeta
+    f_goal_y = (circle['v_x_goal']- vy) / zeta
+
+    #Get force sums
+    force_sum_x, force_sum_y = getForce(circle1x, circle1y, circle2x, circle2y, f_goal_x, f_goal_y)
+    #update velocities appropriately
+    vx += TIMESTEP * force_sum_x
+    vy += TIMESTEP * force_sum_y
+
+    speed = math.sqrt(vx*vx + vy*vy)
+    if speed > MAX_SPEED:
+        vx = MAX_SPEED * vx / speed 
+        vy = MAX_SPEED * vy / speed
+        
+
+    circle['v_x'] = vx
+    circle['v_y'] = vy
+    circle['x'] += TIMESTEP*vx
+    circle['y'] += TIMESTEP*vy           
 
 
-            if f_avoid_mag > MAX_FORCE:
-                force_sum_x = MAX_FORCE* force_sum_x/ f_avoid_mag
-                force_sum_y = MAX_FORCE* force_sum_y / f_avoid_mag
+def getForce(x, y, a, b, f_goal_x, f_goal_y):
+    distance = distanceF(x, y, a, b)
+    favoidx = 0
+    favoidy = 0
+    favoidctr = 0
 
-            vx += TIMESTEP * force_sum_x
-            vy += TIMESTEP * force_sum_y
+    avoidanceD = AgentSize*2
 
-            speed = math.sqrt(vx*vx + vy*vy)
-            if speed > MAX_SPEED:
-                vx = MAX_SPEED * vx / speed 
-                vy = MAX_SPEED * vy / speed
-                
 
-            circle['v_x'] = vx
-            circle['v_y'] = vy
-            circle['x'] += TIMESTEP*vx
-            circle['y'] += TIMESTEP*vy           
+    if distance > 0 and distance < avoidanceD:
+        d_circle = max(distance - AgentSize, 0.001)
+        k = 0.75 * max(AgentSize*3 - d_circle, 0)
+        x_ab = (x - a)/distance
+        y_ab = (y - b)/distance
+        favoidx += k * x_ab/d_circle
+        favoidy += k * y_ab/d_circle
+        favoidctr += 1
+
+    if favoidctr > 0:
+        favoidx = favoidx / favoidctr
+        favoidy = favoidy / favoidctr
+
+    force_sum_x = f_goal_x + favoidx
+    force_sum_y = f_goal_y + favoidy
+    f_avoid_mag = math.sqrt(force_sum_x*force_sum_x + force_sum_y*force_sum_y)
+
+
+    if f_avoid_mag > MAX_FORCE:
+        force_sum_x = MAX_FORCE* force_sum_x/ f_avoid_mag
+        force_sum_y = MAX_FORCE* force_sum_y / f_avoid_mag
+
+    return force_sum_x, force_sum_y
 
 
 """
@@ -206,37 +249,6 @@ def drawCircle(x, y, r, numberOfSegments):
         theta = i * (math.pi / 180)
         glVertex2d(x + r * math.cos(theta),y + r * math.sin(theta))
     glEnd()
-    # glTranslatef(x, y, 0)
-    
-    # # glColor3f(0, 0, 0, 1)
-    # glColor3f(0, 0, 1)
-    # glBegin(GL_LINE_LOOP)
-    # i = 0
-    # while (i < numberOfSegments):
-    #     angle = 360 * i / numberOfSegments
-    #     cx = r*math.cos(angle)
-    #     cy = r*math.sin(angle)
-
-    #     glVertex2f(x  + cx, y + cy)
-    #     i += 1
-
-    # glEnd()
-    
-    # glTranslatef(x, y, 0)
-
-    # # glColor3f(0.807, 0, 0, 1) 
-    # glColor3f(0.807, 0, 1) 
-    # glBegin(GL_TRIANGLE_FAN)
-    # i = 0
-    # while (i < numberOfSegments):
-    #     angle = 2 * math.pi * i / numberOfSegments
-    #     cx = r*math.cos(angle)
-    #     cy = r*math.sin(angle)
-
-    #     glVertex2f(cx, cy)
-    #     i += 1
-
-    # glEnd()
 
 
 def getFPS():
