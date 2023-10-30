@@ -1,4 +1,4 @@
-# Force Based-Avoidance Crowd Simulation
+# Force Based Avoidance Crowd Simulation
 Authors: [Jack Robbins](https://github.com/jackr276) and [Randall Tarazona](https://github.com/Randall543)
 
 ## favoid.py
