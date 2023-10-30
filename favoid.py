@@ -1,7 +1,10 @@
 """
-Jack Robbins and Randall Tarazona
+Authors: Jack Robbins and Randall Tarazona
 10/27/2023
 IT360 Homework 3 task 1
+
+This python program simulates a crowd of agents and uses an inefficient but effective method of checking for collisions.
+In this method, every circle is checked against ever other circle in the window.
 """
 
 import glfw
@@ -15,9 +18,9 @@ TIMESTEP = 0.025
 boundary_x = 0.5
 boundary_y = 0.5
 max_move = 0.05
-circle_rad = 0.05
+circle_rad = 0.025
 AgentSize = circle_rad*2
-numCircles = 30
+numCircles = 50
 MAX_FORCE = 0.01
 MAX_SPEED = 0.008
 

@@ -1,8 +1,12 @@
 """
-Jack Robbins and Randall Tarazona
+Authors: Jack Robbins and Randall Tarazona
 10/27/2023
 IT360 Homework 3 task 2
+
+This file is an identical copy of the favoid.py program, but with a terminal based FPS counter added on
 """
+
+
 
 import glfw
 import math
@@ -18,7 +22,7 @@ boundary_y = 0.5
 max_move = 0.05
 circle_rad = 0.05
 AgentSize = circle_rad*2
-numCircles = 30 
+numCircles = 50 
 MAX_FORCE = 0.01
 MAX_SPEED = 0.008
 lastTime = time.time_ns()
@@ -136,7 +140,7 @@ def update_circles():
   
             distance = distanceF(circle1x, circle1y, circle2x, circle2y)
 
-            if distance > 0 and distance < AgentSize*1.25:
+            if distance > 0 and distance < AgentSize*1.5:
                 d_circle = max(distance - AgentSize, 0.001)
                 k = 0.75 * max(AgentSize*3 - d_circle, 0)
                 x_ab = (circle1x - circle2x)/distance
