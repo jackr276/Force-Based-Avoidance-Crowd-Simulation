@@ -56,7 +56,7 @@ if not glfw.init():
 
 
 # Create a windowed mode window and its OpenGL context
-window = glfw.create_window(800, 800, "Crowd", None, None)
+window = glfw.create_window(800, 800, "Primitive Crowd Avoidance Algorithm", None, None)
 if not window:
     glfw.terminate()
     exit()
