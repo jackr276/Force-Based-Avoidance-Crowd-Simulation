@@ -1,7 +1,9 @@
 """
-Jack Robbins and Randall Tarazona
+Authors: Jack Robbins and Randall Tarazona
 10/27/2023
 IT360 Homework 3 task 3
+
+This version implements a spacial hash using a dictionary structure to improve the efficiency of our collision detections
 """
 
 import glfw
@@ -46,9 +48,11 @@ cell_h = window_height // divisions
 grid_w = divisions
 sHash = {k : []  for k in range(numCells)}
 
+
 # hash function: use coordinated to get associated cell
 def getGridCell(x,y) -> int:
     return (x // cell_w) + (y // cell_h) * grid_w
+
 
 # Initialize the library
 if not glfw.init():
@@ -56,16 +60,19 @@ if not glfw.init():
 
 
 # Create a windowed mode window and its OpenGL context
-window = glfw.create_window(800, 800, "Crowd", None, None)
+window = glfw.create_window(800, 800, "Crowd Avoidance using Spacial Hash", None, None)
 if not window:
     glfw.terminate()
     exit()
 
+
 # Make the window's context current
 glfw.make_context_current(window)
 
+
 # initializes the circles
 circles = []
+
 
 for i in range(numCircles):
     circle = {
@@ -80,17 +87,21 @@ for i in range(numCircles):
     }
     circles.append(circle)
 
-# added to spatial hash (TODO combine this into initialize stage)
+
+# update the spacial hash using our grid cell hasher
 def update_sHash():
     for c in circles:
         x , y = c['x'] , c['y']
         gridCell = getGridCell(x, y)
         sHash[gridCell].append(c)
 
+
+# Helper function to simplify code
 def distanceF(x1, y1, x2, y2):
     return math.sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1))
     
 
+#Updates every circle we have on the screen
 def update_circles():
     for i in range(numCircles):
         circle = circles[i]
@@ -98,17 +109,6 @@ def update_circles():
         circle['x'] += circle['v_x']
         circle['y'] += circle['v_y']
 
-        # Apply constraints to stay within the boundaries
-        '''
-        if circle['x'] < -0.5:
-            circle['x'] = 0.5
-        if circle['y'] < -0.5:
-            circle['y'] = 0.5
-        if circle['x'] > 0.5:
-            circle['x'] = -0.5
-        if circle ['y'] > 0.5:
-            circle['y'] = -0.5
-        '''
         # changed boundies to be one more and one less then the set window boundry. Just to make the math work
         if circle['x'] < 1:
             circle['x'] = 799
@@ -122,9 +122,10 @@ def update_circles():
         circle1x , circle1y = circle['x'], circle['y']
         gridCell = getGridCell(circle1x, circle1y)
 
+        #
         check(circle, gridCell)
 
-        #looking at all circles in lefthand cell
+        
         
         adjusted_x = circle1x - cell_w
         adjusted_y_upper = circle1y + cell_h
@@ -149,7 +150,8 @@ def update_circles():
         check(circle, leftUpperCell)
         check(circle, leftLowerCell)
 
-#FIXME
+
+#A helper function that checks over all of the circles in the current cell and updates them accordingly
 def check(circle, gridCell):
     # skip the cell if less than 2 agents in one cell
     if len(sHash[gridCell]) < 2:
@@ -163,7 +165,7 @@ def check(circle, gridCell):
         updateCircleVelocity(circle, curr)
   
            
-
+#This function uses force sums to update the x and y positions and velocities of a circle
 def updateCircleVelocity(circle, circle2):
     circle1x = circle['x']
     circle1y = circle['y']
@@ -185,6 +187,7 @@ def updateCircleVelocity(circle, circle2):
     vy += TIMESTEP * force_sum_y
 
     speed = math.sqrt(vx*vx + vy*vy)
+    #Cut down the speed if needed
     if speed > MAX_SPEED:
         vx = MAX_SPEED * vx / speed 
         vy = MAX_SPEED * vy / speed
@@ -196,6 +199,7 @@ def updateCircleVelocity(circle, circle2):
     circle['y'] += TIMESTEP*vy           
 
 
+#This function calculates the avoidance force and keeps it within the bounds of our goal forces
 def getForce(x, y, a, b, f_goal_x, f_goal_y):
     distance = distanceF(x, y, a, b)
     favoidx = 0
@@ -251,6 +255,7 @@ def drawCircle(x, y, r, numberOfSegments):
     glEnd()
 
 
+#The getFPS function returns the recent fps (within the last second) and the global average fps over the runtime
 def getFPS():
     global lastTime, totalTime, frames, updateTime, updateFrames, fps, fps_avg
     #Calculate fps
@@ -284,12 +289,14 @@ while not glfw.window_should_close(window):
     glMatrixMode(GL_MODELVIEW)
     glLoadIdentity()
 
-
+    #update the circle velocities, positions, etc
     update_circles() 
     
+    #destroy our current dictionary once update_circles has used it
     for i in sHash:
         sHash[i] = []
     
+    #update the hash with new values
     update_sHash()
 
     for circle in circles:
@@ -297,7 +304,7 @@ while not glfw.window_should_close(window):
         drawCircle(circle['x'], circle['y'], circle_rad, 1000)
         glPopMatrix()
 
-
+    #Display fps values
     currFPS, overallAvg = getFPS()
     currFPS = round(currFPS)
     overallAvg = round(overallAvg)
