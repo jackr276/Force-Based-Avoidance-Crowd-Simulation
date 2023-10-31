@@ -168,7 +168,8 @@ This is the drawCircle helper function
 def drawCircle(x, y, r, numberOfSegments):
     glTranslatef(x, y, 0)
     
-    glColor3f(0, 0, 0, 1)
+    # glColor3f(0, 0, 0, 1)
+    glColor3f(0, 0, 1)
     glBegin(GL_LINE_LOOP)
     i = 0
     while (i < numberOfSegments):
@@ -183,7 +184,8 @@ def drawCircle(x, y, r, numberOfSegments):
     
     glTranslatef(x, y, 0)
 
-    glColor3f(0.807, 0, 0, 1) 
+    # glColor3f(0.807, 0, 0, 1) 
+    glColor3f(0.807, 0, 0) 
     glBegin(GL_TRIANGLE_FAN)
     i = 0
     while (i < numberOfSegments):
