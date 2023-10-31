@@ -3,7 +3,7 @@ Authors: [Jack Robbins](https://github.com/jackr276) and [Randall Tarazona](http
 
 ## [favoid.py](https://github.com/jackr276/Force-Based-Avoidance-Crowd-Simulation/blob/main/favoid.py)
 This program uses a force based avoidance algorithm to simulate a crowd. In this implementation, every agent is checked against every other agent, leading to
-O(n<sup>2</sup>) time complexity. This will be improved apon in **shash.py**
+O(n<sup>2</sup>) time complexity. This will be improved apon in **shash.py**.
 
 ## [fps.py](https://github.com/jackr276/Force-Based-Avoidance-Crowd-Simulation/blob/main/fps.py)
 This program is an exact copy of **favoid.py**, with a simple terminal based FPS counter added in. This FPS counter will allow us to compare efficiency between
